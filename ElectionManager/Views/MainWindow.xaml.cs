@@ -37,10 +37,11 @@ namespace ElectionManager.Views
             UpdateAdminButtons();
 
             _timer = new DispatcherTimer();
-            _timer.Interval = TimeSpan.FromSeconds(10);     
+            _timer.Interval = TimeSpan.FromSeconds(2);     
             _timer.Tick += (s, e) =>
             {
                 ElectionsGrid.Items.Refresh();
+                UpdateVoteButtonState();
             };
             _timer.Start();
         }
@@ -106,6 +107,7 @@ namespace ElectionManager.Views
             }
 
             UpdateAdminButtons();
+            UpdateVoteButtonState();
         }
 
         private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
@@ -195,12 +197,41 @@ namespace ElectionManager.Views
                     "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 CandidatesGrid.SelectedItem = null;
+                UpdateAdminButtons();
+                UpdateVoteButtonState();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message,
                     "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void UpdateVoteButtonState()
+        {
+            if (_currentUser == null || ElectionsGrid.SelectedItem is not Election selected)
+            {
+                BtnVote.IsEnabled = false;
+                BtnVote.Content = "Віддати голос";
+                return;
+            }
+
+            if (!selected.IsActive)
+            {
+                BtnVote.IsEnabled = false;
+                BtnVote.Content = "Голосування закрите";
+                return;
+            }
+
+            if (selected.HasVoted(_currentUser.Id))
+            {
+                BtnVote.IsEnabled = false;
+                BtnVote.Content = "Ваш голос враховано";
+                return;
+            }
+
+            BtnVote.IsEnabled = true;
+            BtnVote.Content = "Віддати голос";
         }
 
         private void BtnShowResults_Click(object sender, RoutedEventArgs e)
