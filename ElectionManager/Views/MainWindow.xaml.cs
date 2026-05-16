@@ -18,11 +18,11 @@ namespace ElectionManager.Views
         private readonly IRepository _repository;
         private readonly List<Voter> _voters;
         private readonly ObservableCollection<Election> _elections;
-        private Voter _currentUser;
+        private IUser _currentUser;
         private DispatcherTimer _timer;
-        
-        public MainWindow(IRepository repository, List<Voter> voters,
-                          List<Election> elections, Voter currentUser)
+
+        public MainWindow(IRepository repository, List<Voter> voters, 
+                          List<Election> elections, IUser currentUser)
         {
             InitializeComponent();
 
@@ -48,26 +48,25 @@ namespace ElectionManager.Views
 
         private void UpdateStatusBar()
         {
-            if (_currentUser == null) return;
+            TxtStatusBarUser.Text = _currentUser.FullName;
 
-            TxtStatusBarUser.Text       = _currentUser.FullName;
-            TxtStatusBarUser.Foreground = Brushes.DarkGreen;
-
-            if (_currentUser.IsAdmin)
+            if (!_currentUser.IsAuthenticated)
             {
-                TxtStatusRole.Text       = "Адміністратор";
-                TxtStatusRole.Foreground = Brushes.DarkBlue;
+                TxtStatusBarUser.Foreground = Brushes.Gray;
+                TxtStatusRole.Text = "Гість";
+                TxtStatusRole.Foreground = Brushes.Gray;
             }
             else
             {
-                TxtStatusRole.Text       = "Виборець";
-                TxtStatusRole.Foreground = Brushes.DarkGray;
+                TxtStatusBarUser.Foreground = Brushes.DarkGreen;
+                TxtStatusRole.Text = _currentUser.IsAdmin ? "Адміністратор" : "Виборець";
+                TxtStatusRole.Foreground = _currentUser.IsAdmin ? Brushes.DarkBlue : Brushes.DarkGray;
             }
         }
 
         private void UpdateAdminButtons()
         {
-            bool isAdmin = _currentUser?.IsAdmin == true;
+            bool isAdmin = _currentUser.IsAdmin;
 
             BtnAddElection.IsEnabled = isAdmin;
 
@@ -90,7 +89,7 @@ namespace ElectionManager.Views
         {
             if (ElectionsGrid.SelectedItem is Election selected)
             {
-                GrpElectionDetails.IsEnabled = _currentUser != null;
+                GrpElectionDetails.IsEnabled = true;
                 TxtElectionTitle.Text        = selected.Title;
                 TxtElectionDates.Text =
                     $"Період: з {selected.StartDate:dd.MM.yyyy HH:mm} " +
@@ -168,7 +167,7 @@ namespace ElectionManager.Views
 
         private void BtnVote_Click(object sender, RoutedEventArgs e)
         {
-            if (_currentUser == null) return;
+            if (!_currentUser.IsAuthenticated) return;
 
             if (ElectionsGrid.SelectedItem is not Election selected ||
                 CandidatesGrid.SelectedItem is not Candidate candidate)
@@ -209,7 +208,7 @@ namespace ElectionManager.Views
 
         private void UpdateVoteButtonState()
         {
-            if (_currentUser == null || ElectionsGrid.SelectedItem is not Election selected)
+            if (!_currentUser.IsAuthenticated || ElectionsGrid.SelectedItem is not Election selected)
             {
                 BtnVote.IsEnabled = false;
                 BtnVote.Content = "Віддати голос";
@@ -249,10 +248,13 @@ namespace ElectionManager.Views
             var confirm = MessageBox.Show(
                 "Вийти з поточного акаунту?",
                 "Вихід", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
             if (confirm != MessageBoxResult.Yes) return;
 
-            _currentUser.SessionToken = null;
+            if (_currentUser is Voter realVoter)
+            {
+                realVoter.SessionToken = null;
+            }
+
             _repository.SaveVoters(_voters);
             _repository.ClearSession();
 

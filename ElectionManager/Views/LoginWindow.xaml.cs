@@ -13,13 +13,19 @@ namespace ElectionManager.Views
         private readonly List<Voter> _voters;
         private readonly IRepository _repository;
 
-        public Voter? AuthenticatedVoter { get; private set; }
+        public IUser? AuthenticatedVoter { get; private set; }
 
         public LoginWindow(List<Voter> voters, IRepository repository)
         {
             InitializeComponent();
             _voters = voters;
             _repository = repository;
+        }
+
+        private void BtnGuest_Click(object sender, RoutedEventArgs e)
+        {
+            AuthenticatedVoter = new Guest();
+            DialogResult = true;
         }
 
         private void BtnLogin_Click(object sender, RoutedEventArgs e)

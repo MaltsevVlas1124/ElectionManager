@@ -31,32 +31,34 @@ namespace ElectionManager
                 return;
             }
 
-            Voter? currentUser = null;
+            IUser currentUser = new Guest();
 
-                string? token = repository.LoadSession();
-                if (token != null)
-                    currentUser = voters.FirstOrDefault(v => v.SessionToken == token);
+            string? token = repository.LoadSession();
+            if (token != null)
+            {
+                var found = voters.FirstOrDefault(v => v.SessionToken == token);
+                if (found != null) currentUser = found;
+            }
 
-                if (currentUser == null)
+            if (!currentUser.IsAuthenticated)
+            {
+                var loginWin = new LoginWindow(voters, repository);
+
+                if (loginWin.ShowDialog() == true)
                 {
-                    var loginWin = new LoginWindow(voters, repository);
-
-                    if (loginWin.ShowDialog() == true)
-                    {
-                        currentUser = loginWin.AuthenticatedVoter;
-                        repository.SaveVoters(voters);
-                    }
-                    else
-                    {
-                        Shutdown();
-                        return;
-                    }
+                    currentUser = loginWin.AuthenticatedVoter;
+                    repository.SaveVoters(voters);
                 }
+                else
+                {
+                    Shutdown();
+                    return;
+                }
+            }
 
-                Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
-
-                var mainWindow = new MainWindow(repository, voters, elections, currentUser);
-                mainWindow.Show();
+            Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
+            var mainWindow = new MainWindow(repository, voters, elections, currentUser);
+            mainWindow.Show();
             }
         }
     }

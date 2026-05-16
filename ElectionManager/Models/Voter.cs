@@ -8,7 +8,7 @@ namespace ElectionManager.Models
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "VoterType")]
     [JsonDerivedType(typeof(Voter), "Voter")]
     [JsonDerivedType(typeof(Admin), "Admin")]
-    public class Voter
+    public class Voter : IUser
     {
         public int Id { get; set; }
         public string FullName { get; set; } = string.Empty;
@@ -16,6 +16,9 @@ namespace ElectionManager.Models
         public string PasswordHash { get; set; } = string.Empty;
         public string? SessionToken { get; set; }
         public bool IsAdmin { get; set; } = false;
+        
+        [JsonIgnore]
+        public bool IsAuthenticated => true;
 
         public void SetCredentials(string login, string rawPassword)
         {

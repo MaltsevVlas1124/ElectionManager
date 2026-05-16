@@ -109,8 +109,7 @@ namespace ElectionManager.Data
         public List<Election>? ImportElectionsFrom(string filePath)
         {
             string json = File.ReadAllText(filePath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            return JsonSerializer.Deserialize<List<Election>>(json, options);
+            return JsonSerializer.Deserialize<List<Election>>(json, JsonOptions);
         }
     }
 }
