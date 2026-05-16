@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace ElectionManager.Models
 {
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "ElectionType")]
+    [JsonDerivedType(typeof(MajorityElection), "Majority")]
+    [JsonDerivedType(typeof(ProportionalElection), "Proportional")]
     public abstract class Election
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-
-        public virtual List<Candidate> Candidates { get; set; } = new List<Candidate>();
-        public virtual List<Ballot> Ballots { get; set; } = new List<Ballot>();
+        public List<Candidate> Candidates { get; set; } = new();
+        public List<Ballot> Ballots { get; set; } = new();
 
         public bool IsActive => DateTime.Now >= StartDate && DateTime.Now <= EndDate;
 
@@ -23,13 +26,17 @@ namespace ElectionManager.Models
 
         public void RegisterVote(Ballot ballot)
         {
-            if (ballot == null) throw new ArgumentNullException(nameof(ballot));
-            if (!IsActive) throw new InvalidOperationException("Ерор - закрито");
-            if (HasVoted(ballot.VoterId)) throw new InvalidOperationException("Ерор - проголосовано");
+            if (ballot == null)
+                throw new ArgumentNullException(nameof(ballot));
+            if (!IsActive)
+                throw new InvalidOperationException(
+                    "Голосування недоступне — завершене або ще не розпочате.");
+            if (HasVoted(ballot.VoterId))
+                throw new InvalidOperationException(
+                    "Ваш голос у цьому голосуванні вже враховано.");
 
             Ballots.Add(ballot);
         }
-
         public abstract string CalculateResults();
     }
 }

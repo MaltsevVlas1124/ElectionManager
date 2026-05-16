@@ -1,179 +1,307 @@
-﻿using System;
+﻿using ElectionManager.Data;
+using ElectionManager.Models;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using ElectionManager.Models;
+using System.IO;
+using System.Windows.Threading;
 
 namespace ElectionManager.Views
 {
     public partial class MainWindow : Window
     {
-        private ObservableCollection<Election> _elections;
-        private ObservableCollection<Voter> _voters;
-        private Voter _currentUser = null;
-
-        public MainWindow()
+        private readonly IRepository _repository;
+        private readonly List<Voter> _voters;
+        private readonly ObservableCollection<Election> _elections;
+        private Voter _currentUser;
+        private DispatcherTimer _timer;
+        
+        public MainWindow(IRepository repository, List<Voter> voters,
+                          List<Election> elections, Voter currentUser)
         {
             InitializeComponent();
-            InitializeData();
 
+            _repository  = repository;
+            _voters      = voters;
+            _currentUser = currentUser;
+
+            _elections = new ObservableCollection<Election>(elections);
             ElectionsGrid.ItemsSource = _elections;
-            UpdateSessionUI();
-        }
 
-        private void InitializeData()
-        {
-            _voters = new ObservableCollection<Voter>();
-            _elections = new ObservableCollection<Election>();
-        }
+            UpdateStatusBar();
+            UpdateAdminButtons();
 
-        private void CandidatesGrid_LoadingRow(object sender, DataGridRowEventArgs e)
-        {
-            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
-        }
-
-        private void UpdateSessionUI()
-        {
-            if (_currentUser != null)
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromSeconds(10);     
+            _timer.Tick += (s, e) =>
             {
-                TxtStatusBarUser.Text = _currentUser.FullName;
-                TxtStatusBarUser.Foreground = Brushes.DarkGreen;
+                ElectionsGrid.Items.Refresh();
+            };
+            _timer.Start();
+        }
+
+        private void UpdateStatusBar()
+        {
+            if (_currentUser == null) return;
+
+            TxtStatusBarUser.Text       = _currentUser.FullName;
+            TxtStatusBarUser.Foreground = Brushes.DarkGreen;
+
+            if (_currentUser.IsAdmin)
+            {
+                TxtStatusRole.Text       = "Адміністратор";
+                TxtStatusRole.Foreground = Brushes.DarkBlue;
             }
             else
             {
-                TxtStatusBarUser.Text = "Не авторизовано";
-                TxtStatusBarUser.Foreground = Brushes.DarkRed;
-
-                GrpElectionDetails.IsEnabled = false;
-                ElectionsGrid.SelectedItem = null;
+                TxtStatusRole.Text       = "Виборець";
+                TxtStatusRole.Foreground = Brushes.DarkGray;
             }
         }
 
-        private void BtnChangeAccount_Click(object sender, RoutedEventArgs e)
+        private void UpdateAdminButtons()
         {
-            if (_currentUser != null)
+            bool isAdmin = _currentUser?.IsAdmin == true;
+
+            BtnAddElection.IsEnabled = isAdmin;
+
+            bool hasSelection = ElectionsGrid.SelectedItem is Election;
+            bool canEdit = false;
+
+            if (hasSelection)
             {
-                var result = MessageBox.Show("Вийти з аккаунту?", "Вихід", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (result == MessageBoxResult.Yes)
-                {
-                    _currentUser = null;
-                    UpdateSessionUI();
-                }
-                return;
+                var selected = (Election)ElectionsGrid.SelectedItem;
+                canEdit = selected.StartDate > DateTime.Now && !selected.Ballots.Any();
             }
 
-            var loginWin = new LoginWindow(_voters.ToList()) { Owner = this };
-            if (loginWin.ShowDialog() == true)
-            {
-                _currentUser = loginWin.AuthenticatedVoter;
+            BtnEditElection.IsEnabled = isAdmin && canEdit;           
+            BtnDeleteElection.IsEnabled = isAdmin && hasSelection;       
 
-                if (!_voters.Any(v => v.Id == _currentUser.Id))
-                {
-                    _voters.Add(_currentUser);
-                }
-                UpdateSessionUI();
-            }
+            BtnShowResults.IsEnabled = hasSelection;
         }
 
         private void ElectionsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ElectionsGrid.SelectedItem is Election selectedElection)
+            if (ElectionsGrid.SelectedItem is Election selected)
             {
-                BtnEditElection.IsEnabled = true;
-                BtnShowResults.IsEnabled = true;
+                GrpElectionDetails.IsEnabled = _currentUser != null;
+                TxtElectionTitle.Text        = selected.Title;
+                TxtElectionDates.Text =
+                    $"Період: з {selected.StartDate:dd.MM.yyyy HH:mm} " +
+                    $"по {selected.EndDate:dd.MM.yyyy HH:mm}";
 
-                if (_currentUser != null)
-                {
-                    GrpElectionDetails.IsEnabled = true;
-                    TxtElectionTitle.Text = selectedElection.Title;
-                    TxtElectionDates.Text = $"Період: з {selectedElection.StartDate:dd.MM.yyyy HH:mm} по {selectedElection.EndDate:dd.MM.yyyy HH:mm}";
-                    CandidatesGrid.ItemsSource = selectedElection.Candidates;
-                }
+                CandidatesGrid.ItemsSource = selected.Candidates;
             }
             else
             {
-                BtnEditElection.IsEnabled = false;
-                BtnShowResults.IsEnabled = false;
                 GrpElectionDetails.IsEnabled = false;
-                CandidatesGrid.ItemsSource = null;
+                CandidatesGrid.ItemsSource   = null;
+                TxtElectionTitle.Text        = "Оберіть голосування зліва";
+                TxtElectionDates.Text        = string.Empty;
+            }
+
+            UpdateAdminButtons();
+        }
+
+        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string query = TxtSearch.Text.ToLower().Trim();
+
+            if (string.IsNullOrEmpty(query))
+            {
+                ElectionsGrid.ItemsSource = _elections;
+            }
+            else
+            {
+                var filtered = _elections.Where(el => el.Title.ToLower().Contains(query)).ToList();
+                ElectionsGrid.ItemsSource = filtered;
             }
         }
 
         private void BtnAddElection_Click(object sender, RoutedEventArgs e)
         {
             var win = new ElectionWindow { Owner = this };
-            if (win.ShowDialog() == true)
-            {
-                win.ResultElection.Id = _elections.Any() ? _elections.Max(el => el.Id) + 1 : 1;
-                _elections.Add(win.ResultElection);
-                ElectionsGrid.Items.Refresh();
-            }
+            if (win.ShowDialog() != true) return;
+
+            win.ResultElection.Id = _elections.Any()
+                ? _elections.Max(el => el.Id) + 1
+                : 1;
+
+            _elections.Add(win.ResultElection);
+            _repository.SaveElections(_elections);
         }
 
         private void BtnEditElection_Click(object sender, RoutedEventArgs e)
         {
-            if (ElectionsGrid.SelectedItem is Election selectedElection)
-            {
-                var win = new ElectionWindow(selectedElection) { Owner = this };
-                if (win.ShowDialog() == true)
-                {
-                    ElectionsGrid.Items.Refresh();
-                    ElectionsGrid_SelectionChanged(null, null);
-                }
-            }
+            if (ElectionsGrid.SelectedItem is not Election selected) return;
+
+            var win = new ElectionWindow(selected) { Owner = this };
+            if (win.ShowDialog() != true) return;
+
+            int index = _elections.IndexOf(selected);
+            _elections[index] = win.ResultElection;
+
+            _repository.SaveElections(_elections);
+        }
+
+        private void BtnDeleteElection_Click(object sender, RoutedEventArgs e)
+        {
+            if (ElectionsGrid.SelectedItem is not Election selected) return;
+
+            var confirm = MessageBox.Show(
+                $"Видалити голосування «{selected.Title}»?\n" +
+                "Всі бюлетені цього голосування також будуть видалені.",
+                "Підтвердження", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            _elections.Remove(selected);
+            _repository.SaveElections(_elections);
         }
 
         private void BtnVote_Click(object sender, RoutedEventArgs e)
         {
             if (_currentUser == null) return;
 
-            if (ElectionsGrid.SelectedItem is not Election selectedElection ||
-                CandidatesGrid.SelectedItem is not Candidate selectedCandidate)
+            if (ElectionsGrid.SelectedItem is not Election selected ||
+                CandidatesGrid.SelectedItem is not Candidate candidate)
             {
-                MessageBox.Show("Оберіть кандидата", "Увага", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Оберіть варіант для голосування.",
+                    "Увага", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var confirm = MessageBox.Show($"Віддати голос за: {selectedCandidate.FullName}?\nНескасовуємо.",
+            var confirm = MessageBox.Show(
+                $"Віддати голос за: «{candidate.FullName}»?\n" +
+                "Цю дію неможливо скасувати.",
                 "Підтвердження", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-            if (confirm == MessageBoxResult.Yes)
-            {
-                try
-                {
-                    var ballot = new Ballot(selectedElection.Id, _currentUser.Id, selectedCandidate.Id);
-                    selectedElection.RegisterVote(ballot);
+            if (confirm != MessageBoxResult.Yes) return;
 
-                    MessageBox.Show("Голос враховано", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
-                    CandidatesGrid.SelectedItem = null;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Ерор", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+            try
+            {
+                var ballot = new Ballot(selected.Id, _currentUser.Id, candidate.Id);
+                ballot.Id = selected.Ballots.Any() ? selected.Ballots.Max(b => b.Id) + 1 : 1;
+                selected.RegisterVote(ballot);
+
+                _repository.SaveElections(_elections);
+
+                MessageBox.Show("Ваш голос успішно враховано!",
+                    "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                CandidatesGrid.SelectedItem = null;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message,
+                    "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void BtnShowResults_Click(object sender, RoutedEventArgs e)
         {
-            if (ElectionsGrid.SelectedItem is Election selectedElection)
+            if (ElectionsGrid.SelectedItem is not Election selected) return;
+
+            string results = selected.CalculateResults();
+            MessageBox.Show(results,
+                $"Результати: {selected.Title}",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void MenuChangeAccount_Click(object sender, RoutedEventArgs e)
+        {
+            var confirm = MessageBox.Show(
+                "Вийти з поточного акаунту?",
+                "Вихід", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            _currentUser.SessionToken = null;
+            _repository.SaveVoters(_voters);
+            _repository.ClearSession();
+
+            string? path = Environment.ProcessPath;
+            if (path != null)
+                System.Diagnostics.Process.Start(path);
+
+            Application.Current.Shutdown();
+        }
+
+        private void MenuExportDb_Click(object sender, RoutedEventArgs e)
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
             {
-                string results = selectedElection.CalculateResults();
-                MessageBox.Show(results, $"Результати: {selectedElection.Title}", MessageBoxButton.OK, MessageBoxImage.Information);
+                Filter = "JSON файли (*.json)|*.json|Усі файли (*.*)|*.*",
+                FileName = "ElectionsBackup.json",
+                Title = "Експортувати базу голосувань"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    _repository.ExportElectionsTo(saveFileDialog.FileName, _elections);
+
+                    MessageBox.Show($"Базу успішно збережено у файл:\n{saveFileDialog.FileName}",
+                        "Експорт завершено", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Помилка збереження: {ex.Message}", "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
-        private void MenuExit_Click(object sender, RoutedEventArgs e)
+        private void MenuImportDb_Click(object sender, RoutedEventArgs e)
         {
-            Application.Current.Shutdown();
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "JSON файли (*.json)|*.json|Усі файли (*.*)|*.*",
+                Title = "Імпортувати базу голосувань"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                var confirm = MessageBox.Show(
+                    "УВАГА! Поточні голосування будуть замінені даними з файлу.\nВи дійсно хочете продовжити?",
+                    "Підтвердження імпорту", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (confirm != MessageBoxResult.Yes) return;
+
+                try
+                {
+                    var importedElections = _repository.ImportElectionsFrom(openFileDialog.FileName);
+
+                    if (importedElections != null)
+                    {
+                        _elections.Clear();
+                        foreach (var el in importedElections) _elections.Add(el);
+                        _repository.SaveElections(_elections);
+
+                        MessageBox.Show("Базу успішно завантажено!", "Імпорт завершено", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Помилка читання файлу: {ex.Message}", "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
 
         private void MenuAbout_Click(object sender, RoutedEventArgs e)
         {
-            var aboutWin = new AboutWindow { Owner = this };
-            aboutWin.ShowDialog();
+            new AboutWindow { Owner = this }.ShowDialog();
+        }
+
+        private void MenuExit_Click(object sender, RoutedEventArgs e)
+        {
+            _timer?.Stop();
+            Application.Current.Shutdown();
         }
     }
 }

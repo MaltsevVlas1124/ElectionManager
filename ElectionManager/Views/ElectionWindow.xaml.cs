@@ -35,9 +35,27 @@ namespace ElectionManager.Views
             }
             else
             {
-                DpStart.SelectedDate = DateTime.Today;
-                DpEnd.SelectedDate = DateTime.Today.AddDays(1);
+                DateTime now = DateTime.Now;
+                DateTime nextHour = now.Date.AddHours(now.Hour + 1);
+
+                DpStart.SelectedDate = nextHour.Date;
+                TxtStartTime.Text = nextHour.ToString("HH:00");
+
+                DpEnd.SelectedDate = nextHour.Date.AddDays(1);
+                TxtEndTime.Text = "20:00";
+
                 CmbType.SelectedIndex = 0;
+            }
+        }
+
+        private void DpStart_SelectedDateChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (DpStart.SelectedDate.HasValue && DpEnd.SelectedDate.HasValue)
+            {
+                if (DpStart.SelectedDate.Value > DpEnd.SelectedDate.Value)
+                {
+                    DpEnd.SelectedDate = DpStart.SelectedDate.Value;
+                }
             }
         }
 
@@ -74,13 +92,40 @@ namespace ElectionManager.Views
                 DateTime start = DateTime.Parse($"{DpStart.SelectedDate:yyyy-MM-dd} {TxtStartTime.Text}");
                 DateTime end = DateTime.Parse($"{DpEnd.SelectedDate:yyyy-MM-dd} {TxtEndTime.Text}");
 
+                if (string.IsNullOrWhiteSpace(TxtTitle.Text))
+                {
+                    MessageBox.Show("Будь ласка, введіть назву виборчої кампанії.",
+                        "Помилка вводу", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (end <= start)
+                {
+                    MessageBox.Show("Дата завершення голосування має бути пізнішою за дату початку.",
+                        "Логічна помилка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (!_isEditMode && start < DateTime.Now)
+                {
+                    MessageBox.Show("Дата початку голосування не може бути у минулому.",
+                        "Логічна помилка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (_candidates.Count < 2)
+                {
+                    MessageBox.Show("Для проведення голосування необхідно додати щонайменше двох кандидатів (варіантів).",
+                        "Недостатньо кандидатів", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
                 if (!_isEditMode)
                 {
                     if (CmbType.SelectedIndex == 0) ResultElection = new MajorityElection();
                     else ResultElection = new ProportionalElection();
                 }
 
-                ResultElection.Title = TxtTitle.Text;
+                ResultElection.Title = TxtTitle.Text.Trim();
                 ResultElection.StartDate = start;
                 ResultElection.EndDate = end;
                 ResultElection.Candidates = _candidates.ToList();
@@ -89,7 +134,8 @@ namespace ElectionManager.Views
             }
             catch (FormatException)
             {
-                MessageBox.Show("Ерор", "Ерор", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Неправильний формат часу. Використовуйте формат ГГ:ХХ (наприклад, 08:00 або 20:30).",
+                    "Помилка вводу", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 

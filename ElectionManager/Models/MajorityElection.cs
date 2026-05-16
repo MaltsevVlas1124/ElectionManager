@@ -6,14 +6,20 @@ namespace ElectionManager.Models
     {
         public override string CalculateResults()
         {
-            if (!Ballots.Any()) return "Ерор - голосів немає";
+            if (!Ballots.Any())
+                return "Голосів ще немає.";
 
-            var winnerId = Ballots.GroupBy(b => b.CandidateId)
-                                  .OrderByDescending(g => g.Count())
-                                  .First().Key;
+            var winnerId = Ballots
+                .GroupBy(b => b.CandidateId)
+                .OrderByDescending(g => g.Count())
+                .First().Key;
 
             var winner = Candidates.FirstOrDefault(c => c.Id == winnerId);
-            return winner != null ? $"Переможець: {winner.FullName}" : "Ерор - помилка підрахунку";
+            int winnerVotes = Ballots.Count(b => b.CandidateId == winnerId);
+
+            return winner != null
+                ? $"Переможець: {winner.FullName} ({winnerVotes} з {Ballots.Count} голосів)"
+                : "Помилка підрахунку результатів.";
         }
     }
 }

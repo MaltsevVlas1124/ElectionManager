@@ -24,8 +24,15 @@ namespace ElectionManager.Views
 
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
-            ResultCandidate.FullName = TxtFullName.Text;
-            ResultCandidate.Information = TxtInfo.Text;
+            if (string.IsNullOrWhiteSpace(TxtFullName.Text))
+            {
+                MessageBox.Show("Назва кандидата (ПІБ або партія) не може бути порожньою.",
+                    "Увага", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            ResultCandidate.FullName = TxtFullName.Text.Trim();
+            ResultCandidate.Information = TxtInfo.Text.Trim();
             this.DialogResult = true;
         }
 
