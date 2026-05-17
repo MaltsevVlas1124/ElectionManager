@@ -6,6 +6,8 @@ namespace ElectionManager.Models
 {
     public class ProportionalElection : Election
     {
+        private const int ResultsDisplayLimit = 5;
+        
         public override string CalculateResults()
         {
             if (!Ballots.Any())
@@ -15,7 +17,7 @@ namespace ElectionManager.Models
             var report = new StringBuilder();
             report.AppendLine($"Результати (всього голосів: {total}):\n");
 
-            var results = Ballots
+            var allResults = Ballots
                 .GroupBy(b => b.CandidateId)
                 .Select(g => new
                 {
@@ -23,14 +25,19 @@ namespace ElectionManager.Models
                     Count = g.Count(),
                     Percent = Math.Round((double)g.Count() / total * 100, 2)
                 })
-                .OrderByDescending(r => r.Percent);
+                .OrderByDescending(r => r.Percent)
+                .ToList();
 
-            foreach (var res in results)
+            foreach (var res in allResults.Take(ResultsDisplayLimit))
             {
                 var candidate = Candidates.FirstOrDefault(c => c.Id == res.Id);
                 if (candidate != null)
-                    report.AppendLine(
-                        $"{candidate.FullName}: {res.Percent}% ({res.Count} голосів)");
+                    report.AppendLine($"{candidate.FullName}: {res.Percent}% ({res.Count} голосів)");
+            }
+
+            if (allResults.Count > ResultsDisplayLimit)
+            {
+                report.AppendLine($"\n...та ще {allResults.Count - ResultsDisplayLimit} варіантів з меншою кількістю голосів.");
             }
 
             return report.ToString();

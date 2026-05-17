@@ -134,7 +134,7 @@ namespace ElectionManager.Views
             }
             catch (FormatException)
             {
-                MessageBox.Show("Неправильний формат часу. Використовуйте формат ГГ:ХХ (наприклад, 08:00 або 20:30).",
+                MessageBox.Show("Неправильний формат часу. Використовуйте формат ГГ:ХХ (наприклад, 23:59)",
                     "Помилка вводу", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }

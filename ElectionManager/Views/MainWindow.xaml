@@ -82,7 +82,7 @@
             </Grid.ColumnDefinitions>
 
             <GroupBox Header="Перелік голосувань"
-                      Grid.Column="0" Margin="0,0,5,0">
+                      Grid.Column="0" Margin="0,0,5,0" Foreground="Gray">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -90,8 +90,8 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                        <TextBlock Text="Пошук за назвою:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="Gray"/>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,5,0,10">
+                        <TextBlock Text="Пошук за назвою:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="Black"/>
                         <TextBox x:Name="TxtSearch" Width="200" TextChanged="TxtSearch_TextChanged"/>
                     </StackPanel>
 
@@ -140,7 +140,7 @@
 
             <GroupBox x:Name="GrpElectionDetails"
                       Header="Варіанти голосування"
-                      Grid.Column="1" IsEnabled="False">
+                      Grid.Column="1" IsEnabled="False" Foreground="Gray">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -152,9 +152,9 @@
                         <TextBlock x:Name="TxtElectionTitle"
                                    Text="Оберіть голосування зліва"
                                    FontWeight="Bold" FontSize="15"
-                                   TextWrapping="Wrap"/>
+                                   TextWrapping="Wrap" Foreground="Black"/>
                         <TextBlock x:Name="TxtElectionDates"
-                                   Text="" Foreground="Gray" Margin="0,4,0,0"/>
+                                   Text="" Margin="0,4,0,0"/>
                     </StackPanel>
 
                     <DataGrid x:Name="CandidatesGrid" Grid.Row="1"

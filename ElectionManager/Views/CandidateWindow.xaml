@@ -18,7 +18,7 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Text="Кандидат:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,10"/>
-        <TextBox x:Name="TxtFullName" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10" ToolTip="ПІБ або назва партії"/>
+        <TextBox x:Name="TxtFullName" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10" ToolTip="ПІБ або назва"/>
 
         <TextBlock Text="Інформація:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,10"/>
         <TextBox x:Name="TxtInfo" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"/>

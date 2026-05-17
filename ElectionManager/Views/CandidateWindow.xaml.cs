@@ -26,7 +26,7 @@ namespace ElectionManager.Views
         {
             if (string.IsNullOrWhiteSpace(TxtFullName.Text))
             {
-                MessageBox.Show("Назва кандидата (ПІБ або партія) не може бути порожньою.",
+                MessageBox.Show("Назва кандидата не може бути порожньою.",
                     "Увага", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }

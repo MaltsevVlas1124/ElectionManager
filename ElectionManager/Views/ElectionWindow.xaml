@@ -46,7 +46,7 @@
             <TextBox x:Name="TxtEndTime" Width="50" Text="20:00" VerticalAlignment="Center"/>
         </StackPanel>
 
-        <GroupBox Header="Кандидати" Grid.Row="4" Grid.ColumnSpan="2" Margin="0,0,0,10">
+        <GroupBox Header="Кандидати" Grid.Row="4" Grid.ColumnSpan="2" Margin="0,0,0,10" Foreground="Gray">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
