@@ -74,6 +74,15 @@ namespace ElectionManager.Views
 
             BtnAddElection.IsEnabled = isAdmin;
 
+            Visibility adminVisibility = isAdmin ? Visibility.Visible : Visibility.Collapsed;
+
+            MenuImport.Visibility = adminVisibility;
+            MenuExport.Visibility = adminVisibility;
+            MenuSystemSeparator.Visibility = adminVisibility;
+
+            BtnToolbarImport.Visibility = adminVisibility;
+            BtnToolbarExport.Visibility = adminVisibility;
+
             bool hasSelection = ElectionsGrid.SelectedItem is Election;
             bool canEdit = false;
 
@@ -276,6 +285,13 @@ namespace ElectionManager.Views
 
         private void MenuExportDb_Click(object sender, RoutedEventArgs e)
         {
+            if (!_currentUser.IsAdmin)
+            {
+                MessageBox.Show("Ця дія доступна лише адміністраторам системи.",
+                    "Відмова у доступі", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            
             var saveFileDialog = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "JSON файли (*.json)|*.json|Усі файли (*.*)|*.*",
@@ -301,6 +317,13 @@ namespace ElectionManager.Views
 
         private void MenuImportDb_Click(object sender, RoutedEventArgs e)
         {
+            if (!_currentUser.IsAdmin)
+            {
+                MessageBox.Show("Ця дія доступна лише адміністраторам системи.",
+                    "Відмова у доступі", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "JSON файли (*.json)|*.json|Усі файли (*.*)|*.*",

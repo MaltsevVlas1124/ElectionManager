@@ -8,9 +8,9 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_Система">
-                <MenuItem Header="_Імпорт бази даних" Click="MenuImportDb_Click"/>
-                <MenuItem Header="_Експорт бази даних" Click="MenuExportDb_Click"/>
-                <Separator/>
+                <MenuItem x:Name="MenuImport" Header="_Імпорт бази даних" Click="MenuImportDb_Click"/>
+                <MenuItem x:Name="MenuExport" Header="_Експорт бази даних" Click="MenuExportDb_Click"/>
+                <Separator x:Name="MenuSystemSeparator"/>
                 <MenuItem Header="_Вихід з програми" Click="MenuExit_Click"/>
             </MenuItem>
             <MenuItem Header="_Профіль">
@@ -37,13 +37,15 @@
                         Style="{StaticResource StandardBtnStyle}"
                         ToolTip="Вийти та увійти під іншим користувачем"
                         Click="MenuChangeAccount_Click"/>
-                
-                <Button Content="Імпортувати базу"
+
+                <Button x:Name="BtnToolbarImport"
+                        Content="Імпортувати базу"
                         Style="{StaticResource StandardBtnStyle}"
                         ToolTip="Імпортувати дані з існуючого JSON-файлу"
                         Click="MenuImportDb_Click"/>
 
-                <Button Content="Експортувати базу"
+                <Button x:Name="BtnToolbarExport"
+                        Content="Експортувати базу"
                         Style="{StaticResource StandardBtnStyle}"
                         ToolTip="Експортувати поточну базу в JSON-файл"
                         Click="MenuExportDb_Click"/>
