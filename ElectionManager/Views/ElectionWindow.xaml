@@ -52,7 +52,24 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <ListBox x:Name="LstCandidates" Grid.Column="0" DisplayMemberPath="FullName" Margin="0,0,5,0"/>
+
+                <DataGrid x:Name="LstCandidates" Grid.Column="0" Margin="0,0,5,0"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          HeadersVisibility="Column"
+                          Foreground="Black">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Кандидат" 
+                                            Binding="{Binding FullName}" 
+                                            Width="*"/>
+                        <DataGridTextColumn Header="Інформація" 
+                                            Binding="{Binding Information}" 
+                                            Width="120"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
                 <StackPanel Grid.Column="1">
                     <Button Content="Додати" Width="80" Margin="0,0,0,5" Click="BtnAddCandidate_Click"/>
                     <Button Content="Редагувати" Width="80" Margin="0,0,0,5" Click="BtnEditCandidate_Click"/>

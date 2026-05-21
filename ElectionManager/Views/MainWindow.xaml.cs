@@ -192,10 +192,7 @@ namespace ElectionManager.Views
 
             try
             {
-                int newBallotId = selected.Ballots.Any() ? selected.Ballots.Max(b => b.Id) + 1 : 1;
-                var ballot = Ballot.CreateNewVote(newBallotId, selected.Id, _currentUser.Id, candidate.Id);
-                
-                selected.RegisterVote(ballot);
+                selected.RegisterVote(_currentUser.Id, candidate.Id);
 
                 _repository.SaveElections(_elections);
 

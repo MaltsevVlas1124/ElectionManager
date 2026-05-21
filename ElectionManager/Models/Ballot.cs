@@ -11,7 +11,6 @@ namespace ElectionManager.Models
     {
         public int Id { get; init; }
         public int ElectionId { get; init; }
-        public int VoterId { get; init; }
         public int CandidateId { get; init; }
         public DateTime VotingTime { get; init; }
 
@@ -20,11 +19,10 @@ namespace ElectionManager.Models
         /// Також гарантує, що бюлетень неможливо створити без повного набору даних.
         /// </summary>
         [JsonConstructor]
-        public Ballot(int id, int electionId, int voterId, int candidateId, DateTime votingTime)
+        public Ballot(int id, int electionId, int candidateId, DateTime votingTime)
         {
             Id = id;
             ElectionId = electionId;
-            VoterId = voterId;
             CandidateId = candidateId;
             VotingTime = votingTime;
         }
@@ -33,9 +31,9 @@ namespace ElectionManager.Models
         /// Фабричний метод для безпечного створення нового бюлетеня під час голосування.
         /// Автоматично фіксує поточний час відданого голосу.
         /// </summary>
-        public static Ballot CreateNewVote(int id, int electionId, int voterId, int candidateId)
+        public static Ballot CreateNewVote(int id, int electionId, int candidateId)
         {
-            return new Ballot(id, electionId, voterId, candidateId, DateTime.Now);
+            return new Ballot(id, electionId, candidateId, DateTime.Now);
         }
     }
 }

@@ -12,6 +12,7 @@ namespace ElectionManager
     /// </summary>
     public partial class App : Application
     {
+        private const string AdminCodeHash = "c0d7c803e01b2ff0f3dce76f540821e0df1a0d7f70d4f9ff35fce173be2b2478";
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -48,7 +49,7 @@ namespace ElectionManager
 
             if (!currentUser.IsAuthenticated)
             {
-                var loginWin = new LoginWindow(voters, repository);
+                var loginWin = new LoginWindow(voters, repository, AdminCodeHash);
 
                 if (loginWin.ShowDialog() == true && loginWin.AuthenticatedVoter is IUser authUser)
                 {

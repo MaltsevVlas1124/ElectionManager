@@ -21,6 +21,7 @@ namespace ElectionManager.Models
         public DateTime EndDate { get; set; }
         public List<Candidate> Candidates { get; set; } = new();
         public List<Ballot> Ballots { get; set; } = new();
+        public List<int> VotedUserIds { get; set; } = new();
 
         public bool IsActive => DateTime.Now >= StartDate && DateTime.Now <= EndDate;
 
@@ -31,7 +32,7 @@ namespace ElectionManager.Models
         /// <returns>Повертає true, якщо голос виборця вже зареєстровано.</returns>
         public bool HasVoted(int voterId)
         {
-            return Ballots.Any(b => b.VoterId == voterId);
+            return VotedUserIds.Contains(voterId);
         }
 
         /// <summary>
@@ -40,18 +41,19 @@ namespace ElectionManager.Models
         /// <param name="ballot">Об'єкт бюлетеня з ідентифікаторами виборця та кандидата.</param>
         /// <exception cref="ArgumentNullException">Викидається, якщо бюлетень порожній.</exception>
         /// <exception cref="InvalidOperationException">Викидається, якщо голосування неактивне або виборець вже проголосував.</exception>
-        public void RegisterVote(Ballot ballot)
+        public void RegisterVote(int voterId, int candidateId)
         {
-            if (ballot == null)
-                throw new ArgumentNullException(nameof(ballot));
             if (!IsActive)
-                throw new InvalidOperationException(
-                    "Голосування недоступне — завершене або ще не розпочате.");
-            if (HasVoted(ballot.VoterId))
-                throw new InvalidOperationException(
-                    "Ваш голос у цьому голосуванні вже враховано.");
+                throw new InvalidOperationException("Голосування недоступне — завершене або ще не розпочате.");
+            if (HasVoted(voterId))
+                throw new InvalidOperationException("Ваш голос у цьому голосуванні вже враховано.");
+
+            int newBallotId = Ballots.Any() ? Ballots.Max(b => b.Id) + 1 : 1;
+
+            var ballot = Ballot.CreateNewVote(newBallotId, Id, candidateId);
 
             Ballots.Add(ballot);
+            VotedUserIds.Add(voterId);
         }
 
         /// <summary>

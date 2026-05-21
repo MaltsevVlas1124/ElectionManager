@@ -16,15 +16,17 @@ namespace ElectionManager.Views
     {
         private readonly List<Voter> _voters;
         private readonly IRepository _repository;
+        private readonly string _adminCodeHash;
         private int _secretClickCount;
         
         public IUser? AuthenticatedVoter { get; private set; }
 
-        public LoginWindow(List<Voter> voters, IRepository repository)
+        public LoginWindow(List<Voter> voters, IRepository repository, string adminHash)
         {
             InitializeComponent();
             _voters = voters;
             _repository = repository;
+            _adminCodeHash = adminHash;
         }
 
         private void TryLogin(Voter voter, string password)
@@ -85,9 +87,7 @@ namespace ElectionManager.Views
 
         private Voter CreateUserWithRole(string adminCode)
         {
-            string adminCodeHash = "c0d7c803e01b2ff0f3dce76f540821e0df1a0d7f70d4f9ff35fce173be2b2478";
-
-            if (!string.IsNullOrEmpty(adminCode) && Voter.HashPassword(adminCode) == adminCodeHash)
+            if (!string.IsNullOrEmpty(adminCode) && Voter.HashPassword(adminCode) == _adminCodeHash)
             {
                 return new Admin();
             }
