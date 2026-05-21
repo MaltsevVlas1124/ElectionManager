@@ -2,6 +2,10 @@
 
 namespace ElectionManager.Views
 {
+    /// <summary>
+    /// Модальне вікно для обов'язкового введення імені або нікнейму
+    /// нового користувача під час його першої реєстрації у системі.
+    /// </summary>
     public partial class NameWindow : Window
     {
         public string FullName { get; private set; } = string.Empty;
@@ -10,7 +14,9 @@ namespace ElectionManager.Views
         {
             InitializeComponent();
         }
-
+        
+        #region Обробники натискання кнопок інтерфейсу
+        
         private void BtnConfirm_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TxtFullName.Text))
@@ -31,5 +37,7 @@ namespace ElectionManager.Views
 
             base.OnClosing(e);
         }
+
+        #endregion
     }
 }

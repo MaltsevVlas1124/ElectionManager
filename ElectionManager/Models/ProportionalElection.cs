@@ -4,10 +4,17 @@ using System.Text;
 
 namespace ElectionManager.Models
 {
+    /// <summary>
+    /// Сутність виборчої кампанії, що використовує пропорційну систему підрахунку з відсотковим розподілом.
+    /// </summary>
     public class ProportionalElection : Election
     {
         private const int ResultsDisplayLimit = 5;
-        
+
+        /// <summary>
+        /// Здійснює підрахунок голосів за пропорційною системою з формуванням рейтингового списку.
+        /// </summary>
+        /// <returns>Рядок із детальним звітом: відсоток та кількість голосів для топових кандидатів у порядку спадання.</returns>
         public override string CalculateResults()
         {
             if (!Ballots.Any())

@@ -13,6 +13,10 @@ using System.Windows.Threading;
 
 namespace ElectionManager.Views
 {
+    /// <summary>
+    /// Головне вікно застосунку. Забезпечує відображення списку виборчих кампаній, 
+    /// керування ними (CRUD) та загальну взаємодію користувача з системою.
+    /// </summary>
     public partial class MainWindow : Window
     {
         private readonly IRepository _repository;
@@ -124,6 +128,8 @@ namespace ElectionManager.Views
             }
         }
 
+        #region Обробники натискання кнопок інтерфейсу
+        
         private void BtnAddElection_Click(object sender, RoutedEventArgs e)
         {
             var win = new ElectionWindow { Owner = this };
@@ -186,8 +192,9 @@ namespace ElectionManager.Views
 
             try
             {
-                var ballot = new Ballot(selected.Id, _currentUser.Id, candidate.Id);
-                ballot.Id = selected.Ballots.Any() ? selected.Ballots.Max(b => b.Id) + 1 : 1;
+                int newBallotId = selected.Ballots.Any() ? selected.Ballots.Max(b => b.Id) + 1 : 1;
+                var ballot = Ballot.CreateNewVote(newBallotId, selected.Id, _currentUser.Id, candidate.Id);
+                
                 selected.RegisterVote(ballot);
 
                 _repository.SaveElections(_elections);
@@ -206,6 +213,7 @@ namespace ElectionManager.Views
             }
         }
 
+        // Допоміжний метод для оновлення стану кнопки голосування.
         private void UpdateVoteButtonState()
         {
             if (!_currentUser.IsAuthenticated || ElectionsGrid.SelectedItem is not Election selected)
@@ -242,6 +250,10 @@ namespace ElectionManager.Views
                 $"Результати: {selected.Title}",
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
+
+        #endregion
+
+        #region Обробники натискання кнопок меню
 
         private void MenuChangeAccount_Click(object sender, RoutedEventArgs e)
         {
@@ -336,5 +348,7 @@ namespace ElectionManager.Views
             _timer?.Stop();
             Application.Current.Shutdown();
         }
+
+        #endregion
     }
 }

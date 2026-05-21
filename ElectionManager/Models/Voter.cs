@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace ElectionManager.Models
 {
+    /// <summary>
+    /// Модель користувача-виборця. Відповідає за зберігання облікових даних та безпечну автентифікацію.
+    /// </summary>
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "VoterType")]
     [JsonDerivedType(typeof(Voter), "Voter")]
     [JsonDerivedType(typeof(Admin), "Admin")]
@@ -20,6 +23,12 @@ namespace ElectionManager.Models
         [JsonIgnore]
         public bool IsAuthenticated => true;
 
+        /// <summary>
+        /// Встановлює облікові дані користувача, перетворюючи відкритий пароль на хеш методом HashPassword.
+        /// </summary>
+        /// <param name="login">Унікальний логін користувача у системі.</param>
+        /// <param name="rawPassword">Оригінальний пароль у відкритому вигляді.</param>
+        /// <exception cref="ArgumentException">Викидається, якщо логін або пароль порожні.</exception>
         public void SetCredentials(string login, string rawPassword)
         {
             if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(rawPassword))
@@ -29,11 +38,21 @@ namespace ElectionManager.Models
             PasswordHash = HashPassword(rawPassword);
         }
 
+        /// <summary>
+        /// Перевіряє правильність введеного пароля шляхом порівняння його хешу зі збереженим у системі.
+        /// </summary>
+        /// <param name="rawPassword">Пароль у відкритому вигляді для перевірки.</param>
+        /// <returns>Повертає true, якщо пароль вірний, інакше - false.</returns>
         public bool VerifyPassword(string rawPassword)
         {
             return PasswordHash == HashPassword(rawPassword);
         }
 
+        /// <summary>
+        /// Перетворює рядок на незворотній хеш за алгоритмом SHA-256 для безпечного зберігання паролів.
+        /// </summary>
+        /// <param name="rawData">Оригінальний пароль або секретний ключ у відкритому вигляді.</param>
+        /// <returns>Рядок, що містить хеш-суму (64 символи).</returns>
         public static string HashPassword(string rawData)
         {
             using var sha256 = SHA256.Create();

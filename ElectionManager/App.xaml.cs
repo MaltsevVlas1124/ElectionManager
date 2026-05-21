@@ -6,6 +6,10 @@ using ElectionManager.Views;
 
 namespace ElectionManager
 {
+    /// <summary>
+    /// Головний клас застосунку. Виконує роль Composition Root: 
+    /// перевіряє цілісність БД, керує сесіями та впроваджує залежності у вікна.
+    /// </summary>
     public partial class App : Application
     {
         protected override void OnStartup(StartupEventArgs e)
@@ -14,6 +18,7 @@ namespace ElectionManager
 
             Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
+            // Ініціалізація бази даних та перевірка цілісності
             var repository = new AppRepository();
             var voters = repository.LoadVoters(out bool votersDbCorrupted);
             var elections = repository.LoadElections(out bool electionsDbCorrupted);
@@ -31,6 +36,7 @@ namespace ElectionManager
                 return;
             }
 
+            // Маршрутизація та авторизація (Автологін або LoginWindow)
             IUser currentUser = new Guest();
 
             string? token = repository.LoadSession();
@@ -44,9 +50,9 @@ namespace ElectionManager
             {
                 var loginWin = new LoginWindow(voters, repository);
 
-                if (loginWin.ShowDialog() == true)
+                if (loginWin.ShowDialog() == true && loginWin.AuthenticatedVoter is IUser authUser)
                 {
-                    currentUser = loginWin.AuthenticatedVoter;
+                    currentUser = authUser;
                     repository.SaveVoters(voters);
                 }
                 else
@@ -55,8 +61,10 @@ namespace ElectionManager
                     return;
                 }
             }
-
+            
+            // Запуск головного інтерфейсу
             Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
+            
             var mainWindow = new MainWindow(repository, voters, elections, currentUser);
             mainWindow.Show();
             }

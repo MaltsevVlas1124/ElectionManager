@@ -6,13 +6,17 @@ using ElectionManager.Models;
 
 namespace ElectionManager.Views
 {
+    /// <summary>
+    /// Модальне вікно для створення та редагування виборчої кампанії. 
+    /// Містить логіку валідації часових рамок та управління списком кандидатів.
+    /// </summary>
     public partial class ElectionWindow : Window
     {
-        public Election ResultElection { get; private set; }
+        public Election? ResultElection { get; private set; }
         private ObservableCollection<Candidate> _candidates = new ObservableCollection<Candidate>();
         private bool _isEditMode;
 
-        public ElectionWindow(Election electionToEdit = null)
+        public ElectionWindow(Election? electionToEdit = null)
         {
             InitializeComponent();
             LstCandidates.ItemsSource = _candidates;
@@ -58,6 +62,8 @@ namespace ElectionManager.Views
                 }
             }
         }
+
+        #region Обробники натискання кнопок інтерфейсу
 
         private void BtnAddCandidate_Click(object sender, RoutedEventArgs e)
         {
@@ -143,5 +149,7 @@ namespace ElectionManager.Views
         {
             this.DialogResult = false;
         }
+
+        #endregion
     }
 }

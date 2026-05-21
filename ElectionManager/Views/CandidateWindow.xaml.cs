@@ -3,11 +3,14 @@ using ElectionManager.Models;
 
 namespace ElectionManager.Views
 {
+    /// <summary>
+    /// Модальне вікно для додавання або редагування інформації про окремого кандидата (варіанту голосування).
+    /// </summary>
     public partial class CandidateWindow : Window
     {
         public Candidate ResultCandidate { get; private set; }
 
-        public CandidateWindow(Candidate candidate = null)
+        public CandidateWindow(Candidate? candidate = null)
         {
             InitializeComponent();
             if (candidate != null)
@@ -21,6 +24,8 @@ namespace ElectionManager.Views
                 ResultCandidate = new Candidate();
             }
         }
+
+        #region Обробники натискання кнопок інтерфейсу
 
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
@@ -40,5 +45,7 @@ namespace ElectionManager.Views
         {
             this.DialogResult = false;
         }
+        
+        #endregion
     }
 }

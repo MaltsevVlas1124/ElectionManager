@@ -8,6 +8,10 @@ using System.Windows.Input;
 
 namespace ElectionManager.Views
 {
+    /// <summary>
+    /// Вікно авторизації та реєстрації. Відповідає за перевірку облікових даних, 
+    /// автентифікацію користувачів та підтримку режиму "Гостя".
+    /// </summary>
     public partial class LoginWindow : Window
     {
         private readonly List<Voter> _voters;
@@ -124,6 +128,8 @@ namespace ElectionManager.Views
             _repository.SaveSession(voter.SessionToken);
         }
 
+        #region Обробники натискання кнопок інтерфейсу
+
         private void BtnGuest_Click(object sender, RoutedEventArgs e)
         {
             AuthenticatedVoter = new Guest();
@@ -154,5 +160,7 @@ namespace ElectionManager.Views
         {
             DialogResult = false;
         }
+
+        #endregion
     }
 }

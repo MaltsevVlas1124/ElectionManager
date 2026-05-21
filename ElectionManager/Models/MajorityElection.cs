@@ -2,8 +2,15 @@
 
 namespace ElectionManager.Models
 {
+    /// <summary>
+    /// Сутність виборчої кампанії, що використовує мажоритарну систему підрахунку голосів.
+    /// </summary>
     public class MajorityElection : Election
     {
+        /// <summary>
+        /// Здійснює підрахунок голосів за мажоритарною системою.
+        /// </summary>
+        /// <returns>Рядок, що містить ім'я переможця та статистику його голосів, або інформацію про нічию.</returns>
         public override string CalculateResults()
         {
             if (!Ballots.Any()) return "Голосів ще немає.";
