@@ -16,7 +16,7 @@
             <MenuItem Header="_Профіль">
                 <MenuItem Header="Змінити _акаунт" Click="MenuChangeAccount_Click"/>
             </MenuItem>
-            <MenuItem Header="_Інформація">
+            <MenuItem Header="І_нформація">
                 <MenuItem Header="Про _застосунок" Click="MenuAbout_Click"/>
             </MenuItem>
         </Menu>
