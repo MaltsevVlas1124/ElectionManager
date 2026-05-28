@@ -9,11 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Logo.png" />
-    <None Remove="Resources\Photo.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Resources\Logo.png" />
     <Resource Include="Resources\Photo.png" />
   </ItemGroup>
